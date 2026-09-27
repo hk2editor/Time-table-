@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>My Life Planner & Interactive Calendar</title>
+
+<style>
+/* ALL-NEW VIBRANT PASTEL THEME BASED ON IMAGE */
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    font-family: 'Comic Sans MS', 'Fredoka', 'Segoe UI', Roboto, sans-serif;
+    background: #f0f4f8;
+    color: #1e293b;
+}
+
+body {
+    overflow-x: auto;
+}
+
+button, select {
+    font-family: inherit;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+button {
+    cursor: pointer;
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+button:active {
+    transform: translateY(0) scale(0.95);
+}
+
+.app {
+    width: 100%;
+    min-height: 100vh;
+    padding: 15px;
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* KEYFRAMES ANIMATIONS */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.92); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes pulseGlow {
+    0% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0.5); }
+    70% { box-shadow: 0 0 0 12px rgba(99, 102, 241, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(99, 102, 241, 0); }
+}
+
+/* TOP BAR & NAVIGATION */
+.topbar {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 15px;
+    background: #1e293b;
+    padding: 12px 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    border: 2px solid #0f172a;
+}
+
+.app-title {
+    color: #fff;
+    font-size: 22px;
+    font-weight: 800;
+    margin: 0;
+    letter-spacing: 0.5px;
+}
+
+.nav-tabs {
+    display: flex;
+    gap: 8px;
+}
+
+.nav-btn {
+    padding: 8px 16px;
+    border: 2px solid #0f172a;
+    border-radius: 10px;
+    background: #cbd5e1;
+    color: #0f172a;
+    font-weight: bold;
+}
+
+.nav-btn.active {
+    background: #facc15;
+    color: #0f172a;
+    box-shadow: 0 0 12px rgba(250, 204, 21, 0.6);
+}
+
+.toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.toolbar button, .toolbar select {
+    border: 2px solid #0f172a;
+    border-radius: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.toolbar select {
+    background: #fff;
+    color: #111827;
+    outline: none;
+}
+
+.btn-green { background: #86efac; color: #0f172a; }
+.btn-red { background: #fca5a5; color: #0f172a; }
+
+/* SCREEN VIEWS */
+.view-screen {
+    display: none;
+}
+
+.view-screen.active {
+    display: block;
+    animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+/* WORKSPACE & PLANNER */
+.workspace {
+    width: 100%;
+    overflow: auto;
+    display: flex;
+    justify-content: center;
+    padding: 5px;
+}
+
+#planner {
+    width: 1200px;
+    min-height: 800px;
+    background: #fffdfa;
+    padding: 25px;
+    border-radius: 20px;
+    border: 3px solid #0f172a;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: width 0.3s ease;
+}
+
+/* HEADER WITH DARK TITLE BANNER */
+.planner-header {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+    background: #1e293b;
+    padding: 15px 20px;
+    border-radius: 16px;
+    color: #fff;
+    border: 2px solid #0f172a;
+}
+
+.header-left { text-align: left; }
+.header-center { text-align: center; }
+.header-right { text-align: right; }
+
+.main-title { font-size: 32px; font-weight: 900; outline: none; color: #fff; }
+.date-line { font-size: 14px; color: #cbd5e1; outline: none; }
+
+.header-box {
+    border: 2px dashed #94a3b8;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+    padding: 7px 12px;
+    min-width: 150px;
+    display: inline-block;
+    text-align: center;
+}
+
+/* REORDERABLE SECTIONS */
+.draggable-container {
+    display: grid;
+    gap: 18px;
+}
+
+.section {
+    border: 2.5px solid #0f172a;
+    border-radius: 16px;
+    overflow: hidden;
+    background: #fff;
+    box-shadow: 3px 4px 0px #0f172a;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.section.moved-animation {
+    animation: pulseGlow 0.6s ease-out;
+}
+
+.section-header {
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 14px;
+    background: #fde047;
+    color: #0f172a;
+    border-bottom: 2.5px solid #0f172a;
+    font-weight: 800;
+}
+
+#sec-1 .section-header { background: #fde047; }
+#sec-2 .section-header { background: #a5f3fc; }
+#sec-3 .section-header { background: #fca5a5; }
+
+.move-btn-group {
+    display: flex;
+    gap: 4px;
+    margin-right: 8px;
+}
+
+.move-btn {
+    background: #fff;
+    border: 1.5px solid #0f172a;
+    color: #0f172a;
+    border-radius: 6px;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    padding: 0;
+    font-weight: bold;
+}
+
+.move-btn:hover {
+    background: #0f172a;
+    color: #fff;
+}
+
+.header-title-wrapper {
+    display: flex;
+    align-items: center;
+}
+
+.section-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.section-controls {
+    display: flex;
+    gap: 4px;
+}
+
+.section-controls button {
+    min-width: 30px;
+    height: 28px;
+    border: 1.5px solid #0f172a;
+    border-radius: 6px;
+    color: #0f172a;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+.add-btn { background: #86efac; }
+.delete-btn { background: #fca5a5; }
+
+.section-content { padding: 14px; }
+
+/* GRIDS & CARDS WITH VIBRANT PASTEL BACKGROUNDS */
+.top-grid, .middle-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.challenge-grid, .week-grid, .today-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+}
+
+.challenge-item, .week-item {
+    min-height: 52px;
+    border: 1.5px solid #0f172a;
+    border-radius: 10px;
+    padding: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    background: #fef08a;
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: popIn 0.25s ease-out;
+}
+
+.week-item { background: #bae6fd; }
+
+.challenge-item:hover, .week-item:hover, .today-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 2px 3px 0px #0f172a;
+}
+
+.challenge-number { font-weight: 800; min-width: 20px; color: #0f172a; }
+.editable { flex: 1; min-width: 0; min-height: 18px; outline: none; color: #0f172a; }
+
+.item-delete {
+    border: 1.5px solid #0f172a;
+    border-radius: 6px;
+    padding: 2px 6px;
+    background: #fca5a5;
+    color: #0f172a;
+    font-size: 12px;
+    font-weight: 900;
+}
+
+/* TODAY'S TARGET BOXES WITH 4 DISTINCT COLORS */
+.today-box {
+    min-height: 72px;
+    border: 1.5px solid #0f172a;
+    border-radius: 10px;
+    padding: 8px;
+    transition: transform 0.2s ease;
+}
+
+.today-grid .today-box:nth-child(1) { background: #fef08a; } /* Yellow */
+.today-grid .today-box:nth-child(2) { background: #bbf7d0; } /* Green */
+.today-grid .today-box:nth-child(3) { background: #fed7aa; } /* Orange */
+.today-grid .today-box:nth-child(4) { background: #ddd6fe; } /* Purple */
+
+.today-box b { display: block; font-size: 13px; margin-bottom: 5px; color: #0f172a; }
+
+/* TODO LIST */
+.todo-list { display: flex; flex-direction: column; gap: 8px; }
+.todo-item {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 1.5px solid #0f172a;
+    border-radius: 8px;
+    padding: 6px 10px;
+    background: #f1f5f9;
+    transition: background 0.2s ease;
+    animation: popIn 0.2s ease-out;
+}
+
+.todo-item:nth-child(even) { background: #fae8ff; }
+
+.todo-check { width: 18px; height: 18px; cursor: pointer; accent-color: #0f172a; }
+.todo-text { flex: 1; outline: none; font-size: 13px; color: #0f172a; }
+
+/* TIME TABLE (PASTEL ROW STRIPES LIKE IMAGE) */
+#schedule { width: 100%; border-collapse: separate; border-spacing: 0; border: 2px solid #0f172a; border-radius: 10px; overflow: hidden; }
+#schedule th, #schedule td { border: 1px solid #0f172a; padding: 7px; outline: none; color: #0f172a; }
+#schedule th { background: #1e293b; color: #fff; font-size: 12px; height: 32px; font-weight: 800; }
+#schedule td { font-size: 12px; height: 34px; }
+
+/* Row color alternating styles like image */
+#timeBody tr:nth-child(4n+1) td { background: #bfdbfe; } /* Blue */
+#timeBody tr:nth-child(4n+2) td { background: #fbcfe8; } /* Pink */
+#timeBody tr:nth-child(4n+3) td { background: #bbf7d0; } /* Green */
+#timeBody tr:nth-child(4n+4) td { background: #fef08a; } /* Yellow */
+
+.time-cell { width: 15%; font-weight: 800; text-align: center; }
+.action-cell { width: 70px; text-align: center; }
+
+.row-handle {
+    cursor: grab;
+    user-select: none;
+    font-weight: bold;
+    color: #0f172a;
+    padding: 0 4px;
+    font-size: 15px;
+}
+
+.time-row.dragging {
+    opacity: 0.5;
+}
+
+/* CALENDAR SECTION VIEW */
+.calendar-container {
+    max-width: 1000px;
+    margin: 20px auto;
+    background: #fff;
+    padding: 24px;
+    border-radius: 20px;
+    border: 2.5px solid #0f172a;
+    box-shadow: 4px 6px 0px #0f172a;
+}
+
+.calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+}
+
+.cal-day-name {
+    text-align: center;
+    font-weight: 800;
+    padding: 8px;
+    background: #1e293b;
+    color: #fff;
+    border-radius: 8px;
+    border: 1.5px solid #0f172a;
+}
+
+.cal-day {
+    min-height: 90px;
+    border: 1.5px solid #0f172a;
+    border-radius: 10px;
+    padding: 6px;
+    background: #fef08a;
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.cal-day:nth-child(even) { background: #bae6fd; }
+
+.cal-day:hover {
+    transform: translateY(-3px);
+    box-shadow: 2px 4px 0px #0f172a;
+}
+
+.cal-day-num {
+    font-weight: 800;
+    font-size: 14px;
+    color: #0f172a;
+}
+
+.cal-cross {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    font-size: 32px;
+    color: #dc2626;
+    user-select: none;
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.cal-day.crossed .cal-cross {
+    transform: translate(-50%, -50%) scale(1);
+}
+
+.footer {
+    text-align: center;
+    color: #475569;
+    font-weight: bold;
+    font-size: 13px;
+    padding-top: 18px;
+    outline: none;
+}
+</style>
+</head>
+<body>
+
+<div class="app">
+
+    <!-- TOP NAVIGATION BAR -->
+    <div class="topbar">
+        <h1 class="app-title">📋 MY ROUTINE </h1>
+
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="switchTab('planner')">📝 Planner View</button>
+            <button class="nav-btn" onclick="switchTab('calendar')">📅 Calendar</button>
+        </div>
+
+        <div class="toolbar">
+            <select id="sizeSelect" onchange="changePlannerSize()">
+                <option value="tablet">Tablet Landscape</option>
+                <option value="a4">A4 Landscape</option>
+                <option value="wide">Wide Planner</option>
+            </select>
+
+            <button class="btn-green" onclick="downloadPlanner()">⬇ PNG</button>
+            <button class="btn-red" onclick="clearPlanner()">🗑 Reset</button>
+        </div>
+    </div>
+
+    <!-- PLANNER SCREEN VIEW -->
+    <div id="plannerScreen" class="view-screen active">
+        <div class="workspace">
+            <div id="planner">
+
+                <div class="planner-header">
+                    <div class="header-left">
+                        <div class="header-box">
+                            <div class="date-line" contenteditable="true" id="hdr-month">Month: __________</div>
+                        </div>
+                    </div>
+
+                    <div class="header-center">
+                        <div class="main-title" contenteditable="true" id="hdr-title">MY LIFE PLANNER</div>
+                        <div class="date-line" contenteditable="true" id="hdr-sub">Plan • Focus • Execute</div>
+                    </div>
+
+                    <div class="header-right">
+                        <div class="header-box">
+                            <div class="date-line" contenteditable="true" id="hdr-year">Year: ________</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="draggable-container" id="draggableContainer">
+
+                    <!-- TOP SECTION -->
+                    <div class="section" id="sec-1">
+                        <div class="section-header">
+                            <div class="header-title-wrapper">
+                                <div class="move-btn-group no-export">
+                                    <button class="move-btn" onclick="moveSection(this, 'up')" title="Up">▲</button>
+                                    <button class="move-btn" onclick="moveSection(this, 'down')" title="Down">▼</button>
+                                </div>
+                                <span class="section-title">🔥 1 MONTH CHALLENGE & 📆 THIS WEEK</span>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <div class="top-grid">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                                        <b>Month Challenge</b>
+                                        <div>
+                                            <button class="add-btn" onclick="addMonthGoal()">+</button>
+                                            <button class="delete-btn" onclick="deleteLastMonthGoal()">−</button>
+                                        </div>
+                                    </div>
+                                    <div id="monthGrid" class="challenge-grid"></div>
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                                        <b>This Week</b>
+                                        <div>
+                                            <button class="add-btn" onclick="addWeekGoal()">+</button>
+                                            <button class="delete-btn" onclick="deleteLastWeekGoal()">−</button>
+                                        </div>
+                                    </div>
+                                    <div id="weekGrid" class="week-grid"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- MIDDLE SECTION -->
+                    <div class="section" id="sec-2">
+                        <div class="section-header">
+                            <div class="header-title-wrapper">
+                                <div class="move-btn-group no-export">
+                                    <button class="move-btn" onclick="moveSection(this, 'up')" title="Up">▲</button>
+                                    <button class="move-btn" onclick="moveSection(this, 'down')" title="Down">▼</button>
+                                </div>
+                                <span class="section-title">☀️ TODAY'S TARGETS & ✅ TO-DO LIST</span>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <div class="middle-grid">
+                                <div class="today-grid">
+                                    <div class="today-box"><b>🎯 Today's Goal</b><div class="editable" contenteditable="true" id="tg-1"></div></div>
+                                    <div class="today-box"><b>📚 Study / Work</b><div class="editable" contenteditable="true" id="tg-2"></div></div>
+                                    <div class="today-box"><b>🏃 Health / Exercise</b><div class="editable" contenteditable="true" id="tg-3"></div></div>
+                                    <div class="today-box"><b>⭐ Important Task</b><div class="editable" contenteditable="true" id="tg-4"></div></div>
+                                </div>
+
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:5px;">
+                                        <b>To-Do List</b>
+                                        <div>
+                                            <button class="add-btn" onclick="addTodo()">+</button>
+                                            <button class="delete-btn" onclick="deleteLastTodo()">−</button>
+                                        </div>
+                                    </div>
+                                    <div id="todoList" class="todo-list"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TIME TABLE SECTION -->
+                    <div class="section" id="sec-3">
+                        <div class="section-header">
+                            <div class="header-title-wrapper">
+                                <div class="move-btn-group no-export">
+                                    <button class="move-btn" onclick="moveSection(this, 'up')" title="Up">▲</button>
+                                    <button class="move-btn" onclick="moveSection(this, 'down')" title="Down">▼</button>
+                                </div>
+                                <span class="section-title">⏰ DAILY TIME TABLE</span>
+                            </div>
+                            <div class="section-controls">
+                                <button class="add-btn" onclick="addTimeRow()">+</button>
+                                <button class="delete-btn" onclick="deleteLastTimeRow()">−</button>
+                            </div>
+                        </div>
+                        <div class="section-content">
+                            <table id="schedule">
+                                <thead>
+                                    <tr>
+                                        <th class="time-cell">TIME</th>
+                                        <th>PLAN / ACTIVITY</th>
+                                        <th class="action-cell">−</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="timeBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="footer" contenteditable="true" id="hdr-footer">
+                    Small progress every day = Big results.
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- CALENDAR SCREEN VIEW -->
+    <div id="calendarScreen" class="view-screen">
+        <div class="calendar-container">
+            <div class="calendar-header">
+                <h2>Interactive Month Calendar</h2>
+                <p>Click/Tap directly on any day to toggle ❌ mark.</p>
+            </div>
+            
+            <div class="calendar-grid">
+                <div class="cal-day-name">Sun</div>
+                <div class="cal-day-name">Mon</div>
+                <div class="cal-day-name">Tue</div>
+                <div class="cal-day-name">Wed</div>
+                <div class="cal-day-name">Thu</div>
+                <div class="cal-day-name">Fri</div>
+                <div class="cal-day-name">Sat</div>
+            </div>
+
+            <div class="calendar-grid" id="calendarDaysGrid" style="margin-top:8px;"></div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script>
+
+/* CALENDAR ONLY SOUND EFFECT ENGINE (Web Audio API) */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx = null;
+
+function initAudio() {
+    if(!audioCtx) {
+        audioCtx = new AudioContext();
+    }
+}
+
+function playCalendarPopSound() {
+    initAudio();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(1400, audioCtx.currentTime + 0.09);
+    
+    gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+    gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.09);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.09);
+}
+
+/* DATA & STORAGE KEY */
+const STORAGE_KEY = "LIFE_PLANNER_DATA";
+
+const defaultTimes = ["5:00 AM", "6:00 AM", "7:00 AM", "8:00 AM", "9:00 AM", "10:00 AM", "11:00 AM", "12:00 PM", "1:00 PM", "2:00 PM", "3:00 PM"];
+const defaultDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+let calendarCrosses = {};
+
+/* TAB SWITCHING */
+function switchTab(tabName) {
+    document.querySelectorAll('.view-screen').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
+
+    if(tabName === 'planner') {
+        document.getElementById('plannerScreen').classList.add('active');
+        document.querySelectorAll('.nav-btn')[0].classList.add('active');
+    } else if(tabName === 'calendar') {
+        document.getElementById('calendarScreen').classList.add('active');
+        document.querySelectorAll('.nav-btn')[1].classList.add('active');
+    }
+}
+
+/* MOVE SECTIONS UP AND DOWN */
+function moveSection(btn, direction) {
+    const section = btn.closest('.section');
+    const container = document.getElementById('draggableContainer');
+    
+    if (direction === 'up' && section.previousElementSibling) {
+        container.insertBefore(section, section.previousElementSibling);
+        triggerPulse(section);
+        saveData();
+    } else if (direction === 'down' && section.nextElementSibling) {
+        container.insertBefore(section.nextElementSibling, section);
+        triggerPulse(section);
+        saveData();
+    }
+}
+
+function triggerPulse(el) {
+    el.classList.remove('moved-animation');
+    void el.offsetWidth;
+    el.classList.add('moved-animation');
+}
+
+/* MONTH GOALS */
+function addMonthGoal(val = ""){
+    const grid = document.getElementById("monthGrid");
+    const number = grid.children.length + 1;
+    const item = document.createElement("div");
+    item.className = "challenge-item";
+    item.innerHTML = `
+        <span class="challenge-number">${number}.</span>
+        <div class="editable" contenteditable="true">${val}</div>
+        <button class="item-delete no-export" onclick="deleteSpecificItem(this)">−</button>
+    `;
+    grid.appendChild(item);
+    renumberMonth();
+    attachInputListeners();
+}
+
+function renumberMonth(){
+    document.querySelectorAll("#monthGrid .challenge-item").forEach((item,index)=>{
+        item.querySelector(".challenge-number").textContent = (index + 1) + ".";
+    });
+}
+
+function deleteSpecificItem(button){
+    button.parentElement.remove();
+    renumberMonth();
+    saveData();
+}
+
+function deleteLastMonthGoal(){
+    const grid = document.getElementById("monthGrid");
+    if(grid.children.length > 0){
+        grid.lastElementChild.remove();
+        renumberMonth();
+        saveData();
+    }
+}
+
+/* WEEK GOALS */
+function addWeekGoal(day="New Day", val=""){
+    const grid = document.getElementById("weekGrid");
+    const item = document.createElement("div");
+    item.className = "week-item";
+    item.innerHTML = `
+        <button class="item-delete no-export" style="position:absolute; top:5px; right:5px;" onclick="deleteWeekItem(this)">−</button>
+        <div class="week-day" contenteditable="true">${day}</div>
+        <div class="editable" contenteditable="true">${val}</div>
+    `;
+    grid.appendChild(item);
+    attachInputListeners();
+}
+
+function deleteWeekItem(button){
+    button.closest(".week-item").remove();
+    saveData();
+}
+
+function deleteLastWeekGoal(){
+    const grid = document.getElementById("weekGrid");
+    if(grid.children.length > 0){
+        grid.lastElementChild.remove();
+        saveData();
+    }
+}
+
+/* TODO LIST */
+function addTodo(text="", checked=false){
+    const list = document.getElementById("todoList");
+    const item = document.createElement("div");
+    item.className = "todo-item";
+    item.innerHTML = `
+        <input type="checkbox" class="todo-check" ${checked ? 'checked' : ''} onchange="saveData();">
+        <div class="todo-text" contenteditable="true">${text}</div>
+        <button class="item-delete no-export" onclick="deleteTodoItem(this)">−</button>
+    `;
+    list.appendChild(item);
+    attachInputListeners();
+}
+
+function deleteTodoItem(button){
+    button.closest(".todo-item").remove();
+    saveData();
+}
+
+function deleteLastTodo(){
+    const list = document.getElementById("todoList");
+    if(list.children.length > 0){
+        list.lastElementChild.remove();
+        saveData();
+    }
+}
+
+/* TIME ROWS & DRAG-TO-REORDER */
+function addTimeRow(time="New Time", activity=""){
+    const body = document.getElementById("timeBody");
+    const row = document.createElement("tr");
+    row.className = "time-row";
+    row.draggable = true;
+    row.innerHTML = `
+        <td class="time-cell" contenteditable="true">${time}</td>
+        <td class="activity-cell" contenteditable="true">${activity}</td>
+        <td class="action-cell">
+            <button class="item-delete no-export" onclick="deleteTimeRow(this)">−</button>
+            <span class="row-handle no-export" title="Hold to drag row">⋮⋮</span>
+        </td>
+    `;
+    body.appendChild(row);
+    setupRowDragAndDrop(row);
+    attachInputListeners();
+}
+
+function deleteTimeRow(button){
+    button.closest("tr").remove();
+    saveData();
+}
+
+function deleteLastTimeRow(){
+    const body = document.getElementById("timeBody");
+    if(body.children.length > 0){
+        body.lastElementChild.remove();
+        saveData();
+    }
+}
+
+function setupRowDragAndDrop(row) {
+    row.addEventListener('dragstart', (e) => {
+        row.classList.add('dragging');
+    });
+
+    row.addEventListener('dragend', () => {
+        row.classList.remove('dragging');
+        saveData();
+    });
+}
+
+function setupTableDragListeners() {
+    const body = document.getElementById('timeBody');
+    body.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        const draggingRow = document.querySelector('.time-row.dragging');
+        if (!draggingRow) return;
+
+        const afterElement = getDragAfterRow(body, e.clientY);
+        if (afterElement == null) {
+            body.appendChild(draggingRow);
+        } else {
+            body.insertBefore(draggingRow, afterElement);
+        }
+    });
+}
+
+function getDragAfterRow(container, y) {
+    const draggableElements = [...container.querySelectorAll('.time-row:not(.dragging)')];
+    return draggableElements.reduce((closest, child) => {
+        const box = child.getBoundingClientRect();
+        const offset = y - box.top - box.height / 2;
+        if (offset < 0 && offset > closest.offset) {
+            return { offset: offset, element: child };
+        } else {
+            return closest;
+        }
+    }, { offset: Number.NEGATIVE_INFINITY }).element;
+}
+
+/* CALENDAR BUILDER (WITH SOUND EFFECT) */
+function buildCalendar(){
+    const grid = document.getElementById("calendarDaysGrid");
+    grid.innerHTML = "";
+    
+    for(let i = 1; i <= 31; i++){
+        const dayBox = document.createElement("div");
+        dayBox.className = "cal-day" + (calendarCrosses[i] ? " crossed" : "");
+        dayBox.dataset.day = i;
+        dayBox.innerHTML = `
+            <div class="cal-day-num">${i}</div>
+            <div class="cal-cross">❌</div>
+        `;
+        
+        dayBox.addEventListener("click", () => {
+            dayBox.classList.toggle("crossed");
+            playCalendarPopSound();
+            calendarCrosses[i] = dayBox.classList.contains("crossed");
+            saveData();
+        });
+
+        grid.appendChild(dayBox);
+    }
+}
+
+/* LOCAL STORAGE - AUTO SAVE & LOAD */
+function saveData(){
+    const container = document.getElementById("draggableContainer");
+    const sectionOrder = [...container.querySelectorAll(".section")].map(sec => sec.id);
+
+    const data = {
+        sectionOrder: sectionOrder,
+        hdrMonth: document.getElementById("hdr-month").innerText,
+        hdrTitle: document.getElementById("hdr-title").innerText,
+        hdrSub: document.getElementById("hdr-sub").innerText,
+        hdrYear: document.getElementById("hdr-year").innerText,
+        hdrFooter: document.getElementById("hdr-footer").innerText,
+        
+        todayGoals: [
+            document.getElementById("tg-1").innerText,
+            document.getElementById("tg-2").innerText,
+            document.getElementById("tg-3").innerText,
+            document.getElementById("tg-4").innerText
+        ],
+
+        monthGoals: [...document.querySelectorAll("#monthGrid .editable")].map(el => el.innerText),
+        
+        weekGoals: [...document.querySelectorAll("#weekGrid .week-item")].map(el => ({
+            day: el.querySelector(".week-day").innerText,
+            val: el.querySelector(".editable").innerText
+        })),
+
+        todos: [...document.querySelectorAll("#todoList .todo-item")].map(el => ({
+            text: el.querySelector(".todo-text").innerText,
+            checked: el.querySelector(".todo-check").checked
+        })),
+
+        timeRows: [...document.querySelectorAll("#timeBody .time-row")].map(el => ({
+            time: el.querySelector(".time-cell").innerText,
+            activity: el.querySelector(".activity-cell").innerText
+        })),
+
+        calendarCrosses: calendarCrosses
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
+
+function loadData(){
+    const savedData = localStorage.getItem(STORAGE_KEY);
+    if(!savedData) {
+        // Defaults
+        for(let i=0;i<6;i++) addMonthGoal();
+        defaultDays.forEach(d => addWeekGoal(d));
+        for(let i=0;i<5;i++) addTodo();
+        defaultTimes.forEach(t => addTimeRow(t));
+        buildCalendar();
+        return;
+    }
+
+    const data = JSON.parse(savedData);
+
+    if (data.sectionOrder) {
+        const container = document.getElementById("draggableContainer");
+        data.sectionOrder.forEach(secId => {
+            const sec = document.getElementById(secId);
+            if (sec) container.appendChild(sec);
+        });
+    }
+
+    document.getElementById("hdr-month").innerText = data.hdrMonth || "Month: __________";
+    document.getElementById("hdr-title").innerText = data.hdrTitle || "MY LIFE PLANNER";
+    document.getElementById("hdr-sub").innerText = data.hdrSub || "Plan • Focus • Execute";
+    document.getElementById("hdr-year").innerText = data.hdrYear || "Year: ________";
+    document.getElementById("hdr-footer").innerText = data.hdrFooter || "Small progress every day = Big results.";
+
+    if(data.todayGoals){
+        document.getElementById("tg-1").innerText = data.todayGoals[0] || "";
+        document.getElementById("tg-2").innerText = data.todayGoals[1] || "";
+        document.getElementById("tg-3").innerText = data.todayGoals[2] || "";
+        document.getElementById("tg-4").innerText = data.todayGoals[3] || "";
+    }
+
+    document.getElementById("monthGrid").innerHTML = "";
+    (data.monthGoals || []).forEach(val => addMonthGoal(val));
+
+    document.getElementById("weekGrid").innerHTML = "";
+    (data.weekGoals || []).forEach(item => addWeekGoal(item.day, item.val));
+
+    document.getElementById("todoList").innerHTML = "";
+    (data.todos || []).forEach(item => addTodo(item.text, item.checked));
+
+    document.getElementById("timeBody").innerHTML = "";
+    (data.timeRows || []).forEach(item => addTimeRow(item.time, item.activity));
+
+    calendarCrosses = data.calendarCrosses || {};
+    buildCalendar();
+    attachInputListeners();
+}
+
+function attachInputListeners(){
+    document.querySelectorAll('#planner [contenteditable="true"]').forEach(el => {
+        el.oninput = saveData;
+    });
+}
+
+function clearPlanner(){
+    if(confirm("Kya aap pura data reset karna chahte hain?")){
+        localStorage.removeItem(STORAGE_KEY);
+        location.reload();
+    }
+}
+
+function changePlannerSize(){
+    const planner = document.getElementById("planner");
+    const val = document.getElementById("sizeSelect").value;
+    if(val === "tablet"){ planner.style.width = "1200px"; }
+    else if(val === "a4"){ planner.style.width = "1123px"; }
+    else if(val === "wide"){ planner.style.width = "1400px"; }
+}
+
+async function downloadPlanner(){
+    const planner = document.getElementById("planner");
+    document.activeElement?.blur();
+    const controls = planner.querySelectorAll(".no-export, .add-btn, .delete-btn");
+    controls.forEach(el => el.style.display = "none");
+
+    try{
+        const canvas = await html2canvas(planner, { scale:2, backgroundColor:"#ffffff" });
+        const link = document.createElement("a");
+        link.download = "my-life-planner.png";
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+    } catch(err){
+        alert("PNG download me dikkat aayi!");
+    }
+    controls.forEach(el => el.style.display = "");
+}
+
+/* INITIALIZATION */
+window.onload = () => {
+    loadData();
+    setupTableDragListeners();
+};
+
+</script>
+</body>
+</html>
